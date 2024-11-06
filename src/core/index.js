@@ -15,13 +15,18 @@ const createMock_defaultOptions = {
  * @param {*} options
  */
 const injectWindow = ({ global, mock, enable }) => {
-  if (typeof window !== "undefined") {
-    window.__MOCK_CONFIG__ = mergeObj(window.__MOCK_CONFIG__, {
-      global,
-      mock,
-      enable,
-    });
+  if (!window) return;
+
+  if (typeof enable === "boolean") {
+    enable = Object.fromEntries(
+      Object.keys(mock).map((scope) => [scope, enable])
+    );
   }
+  window.__MOCK_CONFIG__ = mergeObj(window.__MOCK_CONFIG__, {
+    global,
+    mock,
+    enable,
+  });
 };
 
 /**

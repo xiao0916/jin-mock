@@ -5,16 +5,16 @@ import generateEventName from "../utils/generate-event-name";
 
 const mockRequest_defaultOptions = {
   realRequest: () => Promise.resolve(),
-  enable: true,
-  scope: "",
 };
 
 /**
  * 模拟请求
  * @param {string} scope - 作用域, 为接口路径
+ * @param {bool | { [scope]: bool }} enable - 是否启用mock，默认true
+ * @param {function} realRequest - 真实请求函数，默认不执行
  */
 export default function mockRequest(options = {}) {
-  const { scope, enable, realRequest } = mergeObj(
+  let { scope, enable, realRequest } = mergeObj(
     mockRequest_defaultOptions,
     options
   );
