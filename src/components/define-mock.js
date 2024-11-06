@@ -5,14 +5,16 @@ import { onDestroyMock } from "../events/core";
 
 class Mock extends HTMLElement {
   static observedAttributes = ["scope", "id", "active"];
+  #eventName = "";
 
   constructor() {
     super();
   }
   connectedCallback() {
     this.render();
-
-    Emitter.on(generateEventName(EVENT_ENUM.DESTROY_MOCK, this.id), () => {
+    this.#eventName = generateEventName(EVENT_ENUM.DESTROY_MOCK, this.id);
+    Emitter.on(this.#eventName, () => {
+      Emitter.off(this.#eventName);
       this.remove();
     });
   }
@@ -23,7 +25,6 @@ class Mock extends HTMLElement {
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (name === "active") {
-      console.log("attributeChangedCallback", name, oldValue, newValue);
       $(this.shadowRoot)
         .find(".jm-container")
         .css({
@@ -59,6 +60,7 @@ class Mock extends HTMLElement {
       .find(".jm-modal-close")
       .on("click", () => {
         onDestroyMock(this.id);
+        Emitter.off(this.#eventName);
       });
     return container;
   }

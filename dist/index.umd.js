@@ -37,6 +37,9 @@
   function _classPrivateFieldInitSpec(e, t, a) {
     _checkPrivateRedeclaration(e, t), t.set(e, a);
   }
+  function _classPrivateFieldSet2(s, a, r) {
+    return s.set(_assertClassBrand(s, a), r), r;
+  }
   function _construct(t, e, r) {
     if (_isNativeReflectConstruct()) return Reflect.construct.apply(null, arguments);
     var o = [null];
@@ -371,19 +374,25 @@
     }]);
   }();
 
+  var _eventName = /*#__PURE__*/new WeakMap();
   var Mock = /*#__PURE__*/function (_HTMLElement) {
     function Mock() {
+      var _this;
       _classCallCheck(this, Mock);
-      return _callSuper(this, Mock);
+      _this = _callSuper(this, Mock);
+      _classPrivateFieldInitSpec(_this, _eventName, "");
+      return _this;
     }
     _inherits(Mock, _HTMLElement);
     return _createClass(Mock, [{
       key: "connectedCallback",
       value: function connectedCallback() {
-        var _this = this;
+        var _this2 = this;
         this.render();
-        Emitter.on(generateEventName(EVENT_ENUM.DESTROY_MOCK, this.id), function () {
-          _this.remove();
+        _classPrivateFieldSet2(_eventName, this, generateEventName(EVENT_ENUM.DESTROY_MOCK, this.id));
+        Emitter.on(_classPrivateFieldGet2(_eventName, this), function () {
+          Emitter.off(_classPrivateFieldGet2(_eventName, _this2));
+          _this2.remove();
         });
       }
     }, {
@@ -395,7 +404,6 @@
       key: "attributeChangedCallback",
       value: function attributeChangedCallback(name, oldValue, newValue) {
         if (name === "active") {
-          console.log("attributeChangedCallback", name, oldValue, newValue);
           $(this.shadowRoot).find(".jm-container").css({
             display: newValue === "true" ? "block" : "none"
           });
@@ -412,10 +420,11 @@
     }, {
       key: "renderDom",
       value: function renderDom() {
-        var _this2 = this;
+        var _this3 = this;
         var container = $('<div class="jm-container"></div>');
         $(container).append($("<div class=\"jm-mask\"></div>\n        <div class=\"jm-modal\">\n          <div class=\"jm-modal-header\">\n            <h3 class=\"jm-modal-title\">Mock \u8BF7\u6C42</h3>\n            <button class=\"jm-modal-close\">\n              <span class=\"jm-modal-close-x\">\xD7</span>\n            </button>\n          </div>\n          <div class=\"jm-modal-body\">\n          </div>\n        </div>")).find(".jm-modal-close").on("click", function () {
-          onDestroyMock(_this2.id);
+          onDestroyMock(_this3.id);
+          Emitter.off(_classPrivateFieldGet2(_eventName, _this3));
         });
         return container;
       }
@@ -454,7 +463,7 @@
       button.attr("type", "sendRequest").data({
         mockId: mockId,
         status: "success"
-      }).text(mockId || name);
+      }).text(name || mockId);
       btnList.push(button);
     });
     return btnList;
@@ -472,7 +481,7 @@
       button.attr("type", "sendRequest").data({
         mockId: mockId,
         status: "fail"
-      }).text(mockId || name);
+      }).text(name || mockId);
       btnList.push(button);
     });
     return btnList;

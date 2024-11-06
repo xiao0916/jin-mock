@@ -17,7 +17,7 @@ const createSuccessButton = (scope) => {
           mockId,
           status: "success",
         })
-        .text(mockId || name);
+        .text(name || mockId);
       btnList.push(button);
     });
   return btnList;
@@ -38,7 +38,7 @@ const createFailButton = (scope) => {
           mockId,
           status: "fail",
         })
-        .text(mockId || name);
+        .text(name || mockId);
       btnList.push(button);
     });
   return btnList;
