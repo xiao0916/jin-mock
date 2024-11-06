@@ -10,37 +10,16 @@ const createMock_defaultOptions = {
   onCancel: noop,
 };
 
-/*
-{
-  '/api/user': [
-    {
-      mockId: '1',
-      status: 'success',
-      data: {}
-    },
-    {
-      mockId: '2',
-      status: 'error',
-      data: {}
-    },
-    {
-      mockId: '3',
-      status: 'success',
-      data: {}
-    }
-  ]
-}
-*/
-
 /**
  * 注入window
  * @param {*} options
  */
-const injectWindow = ({ global, mock }) => {
+const injectWindow = ({ global, mock, enable }) => {
   if (typeof window !== "undefined") {
     window.__MOCK_CONFIG__ = mergeObj(window.__MOCK_CONFIG__, {
       global,
       mock,
+      enable,
     });
   }
 };

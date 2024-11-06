@@ -1,5 +1,4 @@
 import Emitter, { EVENT_ENUM } from "../utils/emitter";
-import noop from "../utils/noop";
 import mergeObj from "../utils/merge-obj";
 import { appendMock } from "../components/mock";
 import generateEventName from "../utils/generate-event-name";
@@ -42,20 +41,23 @@ export default function mockRequest(options = {}) {
 
   return new Promise((resolve, reject) => {
     Emitter.on(generateEventName(EVENT_ENUM.SUCCESS, eventId), (res) => {
-      console.log("onSuccess");
+      Emitter.off(generateEventName(EVENT_ENUM.SUCCESS, eventId));
       resolve(res);
     });
     Emitter.on(generateEventName(EVENT_ENUM.FAIL, eventId), (res) => {
-      console.log("onFail");
+      Emitter.off(generateEventName(EVENT_ENUM.FAIL, eventId));
       reject(res);
     });
     Emitter.on(generateEventName(EVENT_ENUM.CANCEL, eventId), () => {
-      console.log("onCancel");
+      Emitter.off(generateEventName(EVENT_ENUM.CANCEL, eventId));
       resolve("cancel");
     });
     Emitter.on(generateEventName(EVENT_ENUM.REAL_REQUEST, eventId), () => {
-      console.log("real request");
-      realRequest?.().then(resolve, reject);
+      realRequest?.()
+        .then(resolve, reject)
+        .finally(() => {
+          Emitter.off(generateEventName(EVENT_ENUM.REAL_REQUEST, eventId));
+        });
     });
   });
 }
