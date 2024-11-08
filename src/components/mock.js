@@ -1,6 +1,14 @@
-import Events from "../events";
-import defineMock from "./define-mock";
 import $ from "jquery";
+import {
+  onSuccess,
+  onFail,
+  onCancel,
+  onRealRequest,
+  onDestroyMock,
+} from "../events/core";
+import defineMock from "./define-mock";
+import EventStack from "../utils/event-stack";
+const eventStack = new EventStack();
 
 const createSuccessButton = (scope) => {
   const mockData = (window.__MOCK_CONFIG__.mock || {})[scope];
@@ -48,7 +56,7 @@ const createFailButton = (scope) => {
  * 渲染MOCK元素
  * @returns {void}
  */
-export function createMockContent(scope, events) {
+function createMockContent(scope) {
   const content = $("<div>");
   const realRequestTitle = $("<h3>").text("真实的请求");
   const successTitle = $("<h3>").text("成功的请求");
@@ -67,14 +75,15 @@ export function createMockContent(scope, events) {
   successContainer.append(createSuccessButton(scope));
   failContainer.append(createFailButton(scope));
   content.on("click", "button[type=sendRequest]", (e) => {
+    let eventId = "";
     if ($(e.target).data("status") === "fail") {
-      events.onFail(scope, $(e.target).data("mockId"));
+      eventId = onFail(scope, $(e.target).data("mockId"));
     } else if ($(e.target).data("status") === "success") {
-      events.onSuccess(scope, $(e.target).data("mockId"));
+      eventId = onSuccess(scope, $(e.target).data("mockId"));
     } else if ($(e.target).data("realRequest")) {
-      events.onRealRequest();
+      eventId = onRealRequest(scope);
     }
-    events.onDestroyMock();
+    onDestroyMock(eventId, scope);
   });
   content
     .append(realRequestTitle)
@@ -91,21 +100,20 @@ const activateMock = (eventId) => {
   $(`jin-mock[id=${eventId}]`).attr("active", "true");
 };
 
-export function appendMock(scope) {
-  const events = new Events();
+export function appendMock(scope, eventId = eventStack.getLatest(scope)) {
   defineMock();
   const jinMock = $("<jin-mock></jin-mock>");
-  jinMock.attr("scope", scope).attr("id", events.getEventId()).appendTo("body");
-  activateMock(events.getEventId());
+  jinMock.attr("scope", scope).attr("id", eventId).appendTo("body");
+  activateMock(eventId);
   $(jinMock.get(0).shadowRoot)
     .find(".jm-modal-body")
     .empty()
-    .append(createMockContent(scope, events));
+    .append(createMockContent(scope));
 
   return {
-    eventId: events.getEventId(),
+    eventId,
     close: () => {
-      events.onDestroyMock();
+      onDestroyMock(scope);
     },
   };
 }

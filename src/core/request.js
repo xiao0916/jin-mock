@@ -2,6 +2,9 @@ import Emitter, { EVENT_ENUM } from "../utils/emitter";
 import mergeObj from "../utils/merge-obj";
 import { appendMock } from "../components/mock";
 import generateEventName from "../utils/generate-event-name";
+import EventStack from "../utils/event-stack";
+const eventStack = new EventStack();
+import generateUnionid from "../utils/generate-unionid";
 
 const mockRequest_defaultOptions = {
   realRequest: () => Promise.resolve(),
@@ -37,26 +40,45 @@ export default function mockRequest(options = {}) {
     return realRequest ? realRequest() : Promise.resolve();
   }
 
-  const { eventId } = appendMock(scope);
+  // 事件标识
+  const eventId = generateUnionid();
+  eventStack.push(scope, eventId);
+
+  if (window.__MOCK_CONFIG__.useModal) {
+    appendMock(scope, eventId);
+  }
+
+  const clearAllEvent = () => {
+    Emitter.off(generateEventName(EVENT_ENUM.SUCCESS, eventId));
+    Emitter.off(generateEventName(EVENT_ENUM.FAIL, eventId));
+    Emitter.off(generateEventName(EVENT_ENUM.CANCEL, eventId));
+    Emitter.off(generateEventName(EVENT_ENUM.DESTROY_MOCK, eventId));
+    Emitter.off(generateEventName(EVENT_ENUM.REAL_REQUEST, eventId));
+  };
 
   return new Promise((resolve, reject) => {
     Emitter.on(generateEventName(EVENT_ENUM.SUCCESS, eventId), (res) => {
-      Emitter.off(generateEventName(EVENT_ENUM.SUCCESS, eventId));
+      console.log("onSuccess", res);
+      // clearAllEvent();
       resolve(res);
     });
     Emitter.on(generateEventName(EVENT_ENUM.FAIL, eventId), (res) => {
-      Emitter.off(generateEventName(EVENT_ENUM.FAIL, eventId));
+      clearAllEvent();
       reject(res);
     });
     Emitter.on(generateEventName(EVENT_ENUM.CANCEL, eventId), () => {
-      Emitter.off(generateEventName(EVENT_ENUM.CANCEL, eventId));
-      resolve("cancel");
+      clearAllEvent();
+      reject("cancel");
+    });
+    Emitter.on(generateEventName(EVENT_ENUM.DESTROY_MOCK, eventId), () => {
+      clearAllEvent();
+      reject("close");
     });
     Emitter.on(generateEventName(EVENT_ENUM.REAL_REQUEST, eventId), () => {
       realRequest?.()
         .then(resolve, reject)
         .finally(() => {
-          Emitter.off(generateEventName(EVENT_ENUM.REAL_REQUEST, eventId));
+          clearAllEvent();
         });
     });
   });

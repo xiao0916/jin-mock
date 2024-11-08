@@ -59,7 +59,7 @@ class Mock extends HTMLElement {
       )
       .find(".jm-modal-close")
       .on("click", () => {
-        onDestroyMock(this.id);
+        onDestroyMock(this.id, this.scope);
         Emitter.off(this.#eventName);
       });
     return container;
