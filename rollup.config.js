@@ -11,7 +11,7 @@ export default {
   external: ["jquery"],
   output: [
     {
-      file: "dist/index.umd.min.js",
+      file: "dist/umd/index.min.js",
       format: "umd",
       name: "jinMock",
       plugins: [terser()],
@@ -20,13 +20,33 @@ export default {
       },
     },
     {
-      file: "dist/index.umd.js",
+      file: "dist/umd/index.js",
       format: "umd",
       name: "jinMock",
       plugins: [],
       globals: {
         jquery: "$",
       },
+    },
+    {
+      file: "dist/es/index.min.js",
+      format: "esm",
+      plugins: [terser()],
+    },
+    {
+      file: "dist/es/index.js",
+      format: "esm",
+      plugins: [],
+    },
+    {
+      file: "dist/cjs/index.min.js",
+      format: "cjs",
+      plugins: [terser()],
+    },
+    {
+      file: "dist/cjs/index.js",
+      format: "cjs",
+      plugins: [],
     },
   ],
   plugins: [
